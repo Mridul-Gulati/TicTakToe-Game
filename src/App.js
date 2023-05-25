@@ -1,5 +1,6 @@
 import './App.css';
-import { useState } from 'react';
+import backgroundMusic from './assets/bgMusic.mp3';
+import { useState, useRef} from 'react';
 
 
 
@@ -14,7 +15,39 @@ const ResetButton = ({ resetBoard }) => {
     </div>
   )
 }
+
+
+
 export default function Board() {
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  const handleButtonClick = () => {
+    if (audioPlaying) {
+      pauseAudio();
+    } else {
+      playAudio();
+    }
+  };
+
+  const playAudio = () => {
+    const audio = new Audio(backgroundMusic);
+    audio.loop = true;
+    audio.play();
+    audioRef.current = audio;
+    setAudioPlaying(true);
+  };
+
+  const pauseAudio = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    setAudioPlaying(false);
+  };
+
+
   const [xIsNext, setXIsNext] = useState(true);
   const [squares, setSquares] = useState(Array(9).fill(null));
   const resetBoard = () => {
@@ -48,6 +81,11 @@ export default function Board() {
   
   return (
     <>
+      <div className="absolute top-5 right-20 p-2">
+        <button className="transition-all duration-500 bg-yellow-500 text-white hover:bg-orange-500 font-bold py-2 px-4 mt-3 rounded" onClick={handleButtonClick}>
+          {audioPlaying ? 'Pause Music' : 'Play Music'}
+        </button>
+      </div>
       <h1 className="text-center font-extrabold text-transparent text-8xl bg-clip-text bg-gradient-to-r from-lime-50 to-yellow-500">
         TIC TAC TOE!
       </h1>
@@ -75,6 +113,7 @@ export default function Board() {
 
 
 function calculateWinner(squares) {
+  let isBoardFilled =true;
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -87,12 +126,16 @@ function calculateWinner(squares) {
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
+    
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }
-    else if(!squares.includes(null)){
-      return 'draw';
+    if (!squares[a] || !squares[b] || !squares[c]) {
+      isBoardFilled = false;
+    }
   }
+  if(isBoardFilled){
+    return 'draw';
   }
   return null;
 }
